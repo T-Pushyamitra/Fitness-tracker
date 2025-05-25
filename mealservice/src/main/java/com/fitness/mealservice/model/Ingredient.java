@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Ingredient {
 
     @Id
