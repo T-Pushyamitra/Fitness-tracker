@@ -2,11 +2,10 @@ package com.fitness.mealservice.service;
 
 import com.fitness.mealservice.model.Ingredient;
 import com.fitness.mealservice.repository.IngredientRepository;
+import com.fitness.mealservice.utils.validators.IngredientValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -15,26 +14,57 @@ import java.util.List;
 public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
+    private final IngredientValidator validator;
 
-    public Ingredient save(Ingredient ingredient) {
+    private Ingredient save(Ingredient ingredient){
+        if (validator.validate(ingredient)) {
 
-        if (ingredientRepository.existsByName(ingredient.getName())){
-            throw new IllegalArgumentException(ingredient.getName() + " already exists!");
+            Ingredient _ingredient = new Ingredient();
+
+            _ingredient.setName(ingredient.getName());
+            _ingredient.setQuantity(ingredient.getQuantity());
+            _ingredient.setUnit(ingredient.getUnit());
+            _ingredient.setCalories(ingredient.getCalories());
+            _ingredient.setProtein(ingredient.getProtein());
+            _ingredient.setCarbs(ingredient.getCarbs());
+            _ingredient.setFats(ingredient.getFats());
+            _ingredient.setFiber(ingredient.getFiber());
+            ingredientRepository.save(_ingredient);
+        }
+        return ingredient;
+    }
+
+    private Ingredient update(Ingredient ingredient) {
+        if (validator.validate(ingredient, true)) {
+
+            Ingredient _ingredient = ingredientRepository.getReferenceById(ingredient.getId());
+
+            _ingredient.setName(ingredient.getName());
+            _ingredient.setQuantity(ingredient.getQuantity());
+            _ingredient.setUnit(ingredient.getUnit());
+            _ingredient.setCalories(ingredient.getCalories());
+            _ingredient.setProtein(ingredient.getProtein());
+            _ingredient.setCarbs(ingredient.getCarbs());
+            _ingredient.setFats(ingredient.getFats());
+            _ingredient.setFiber(ingredient.getFiber());
+
+            ingredientRepository.save(_ingredient);
+        }
+        return ingredient;
+    }
+
+    public List<Ingredient> saveAll(List<Ingredient> ingredients) {
+
+        // Return Null
+        if (ingredients == null) {
+            return null;
         }
 
-        Ingredient _ingredient = (ingredient.getId() != null) ?
-                    ingredientRepository.getReferenceById(ingredient.getId()): new Ingredient();
+        ingredients.forEach(ingredient -> {
+            Ingredient _ingredient = (ingredient.getId() != null) ? update(ingredient) : save(ingredient);
+        });
 
-        _ingredient.setName(ingredient.getName());
-        _ingredient.setQuantity(ingredient.getQuantity());
-        _ingredient.setUnit(ingredient.getUnit());
-        _ingredient.setCalories(ingredient.getCalories());
-        _ingredient.setProtein(ingredient.getProtein());
-        _ingredient.setCarbs(ingredient.getCarbs());
-        _ingredient.setFat(ingredient.getFat());
-        _ingredient.setFiber(ingredient.getFiber());
-
-        return ingredientRepository.save(_ingredient);
+        return ingredients;
     }
 
     public List<Ingredient> list(Sort sort) {

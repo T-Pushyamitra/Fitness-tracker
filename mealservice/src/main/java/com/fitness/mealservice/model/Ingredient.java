@@ -35,7 +35,7 @@ public class Ingredient {
     private double carbs;     // grams
 
     @Column(nullable = false)
-    private double fat;       // grams
+    private double fats;       // grams
 
     @Column(nullable = false)
     private double fiber;     // grams
