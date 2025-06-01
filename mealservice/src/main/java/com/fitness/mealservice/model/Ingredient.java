@@ -2,6 +2,7 @@ package com.fitness.mealservice.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class Ingredient {
 
     @Id
@@ -34,7 +37,7 @@ public class Ingredient {
     private double carbs;     // grams
 
     @Column(nullable = false)
-    private double fat;       // grams
+    private double fats;       // grams
 
     @Column(nullable = false)
     private double fiber;     // grams
