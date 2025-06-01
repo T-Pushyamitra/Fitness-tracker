@@ -1,14 +1,19 @@
 package com.fitness.mealservice.service;
 
+import com.fitness.mealservice.dto.request.MealCategoryRequestDto;
+import com.fitness.mealservice.dto.response.MealCategoryResponseDto;
+import com.fitness.mealservice.mappers.MealCategoryMapper;
 import com.fitness.mealservice.model.Ingredient;
 import com.fitness.mealservice.model.MealCategory;
 import com.fitness.mealservice.repository.MealCategoryRepository;
 import com.fitness.mealservice.utils.validators.MealCategoryValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,47 +21,37 @@ public class MealCategoryService {
     private final MealCategoryRepository mealCategoryRepository;
     private final MealCategoryValidator validator;
 
-    private MealCategory save(MealCategory mealCategory) {
-        if (validator.validate(mealCategory)) {
+    @Autowired
+    private MealCategoryMapper mapper;
 
-            MealCategory _mealCategory = new MealCategory();
+    private MealCategoryResponseDto save(MealCategory mealCategory) {
+        MealCategory _mealCategory = (mealCategory.getId() != null)?
+                mealCategoryRepository.getReferenceById(mealCategory.getId()) : new MealCategory();
 
-            _mealCategory.setName(mealCategory.getName());
-            _mealCategory.setDescription(mealCategory.getDescription());
-            mealCategoryRepository.save(_mealCategory);
-        }
-        return mealCategory;
-    }
-
-    private MealCategory update(MealCategory mealCategory) {
-        if (validator.validate(mealCategory, true)) {
-
-            MealCategory _mealCategory = mealCategoryRepository.getReferenceById(mealCategory.getId());
+        if (validator.validate(mealCategory, _mealCategory.getId() != null)) {
 
             _mealCategory.setName(mealCategory.getName());
             _mealCategory.setDescription(mealCategory.getDescription());
-            mealCategoryRepository.save(_mealCategory);
+            _mealCategory = mealCategoryRepository.save(_mealCategory);
         }
-        return mealCategory;
+        return mapper.toResponseDto(_mealCategory);
     }
 
-    public List<MealCategory> saveAll(List<MealCategory> mealCategories) {
 
-        // Return Null
-        if (mealCategories == null) {
-            return null;
-        }
+    public List<MealCategoryResponseDto> saveAll(List<MealCategoryRequestDto> mealCategories) {
 
-        mealCategories.forEach(mealCategory -> {
-            MealCategory _mealCategory = (mealCategory.getId() != null) ? update(mealCategory) : save(mealCategory);
-        });
+        if (mealCategories == null) return null;
 
-        return mealCategories;
+        List<MealCategory> mealCategoryList = mapper.toEntityList(mealCategories);
+        return  mealCategoryList.stream()
+                .map(this::save)
+                .collect(Collectors.toList());
+
     }
 
-    public List<MealCategory> list(Sort sort) {
-        List<MealCategory> list = mealCategoryRepository.findAll(sort);
-        return (list.isEmpty()) ? null: list;
+    public List<MealCategoryResponseDto> list(Sort sort) {
+        List<MealCategoryResponseDto> list = mapper.toResponseDtoList(mealCategoryRepository.findAll(sort));
+        return list;
     }
 
 }
